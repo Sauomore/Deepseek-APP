@@ -1,0 +1,50 @@
+{
+  "name": "deepseek-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Deepseek APP - unofficial mobile client built on the DeepSeek Open Platform app APIs",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc -b",
+    "cap:sync": "cap sync android",
+    "cap:open": "cap open android",
+    "assets": "node scripts/gen-assets.mjs",
+    "apk": "npm run build && cap sync android && cd android && gradlew.bat assembleDebug",
+    "apk:release": "npm run build && cap sync android && cd android && gradlew.bat assembleRelease"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/keyboard": "^8.0.6",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
+    "dompurify": "^3.4.18",
+    "highlight.js": "^11.12.0",
+    "idb-keyval": "^6.3.0",
+    "katex": "^0.19.1",
+    "markdown-it": "^15.0.3",
+    "mermaid": "^12.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zustand": "^5.1.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@types/markdown-it": "^14.2.0",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "sharp": "^0.34.5",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.8"
+  }
+}

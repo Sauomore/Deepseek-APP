@@ -1,0 +1,465 @@
+/* =========================================================================
+   Composer: mode toggles, attachment strip, growing textarea, send/stop button.
+   ========================================================================= */
+
+.composer-dock {
+  flex: none;
+  position: relative;
+  z-index: var(--z-composer);
+  padding: 8px var(--gutter) calc(10px + var(--safe-bottom));
+  background: var(--bg);
+}
+
+/* Soft fade above the dock so scrolling text doesn't collide with it. */
+.composer-dock::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -26px;
+  height: 26px;
+  pointer-events: none;
+  background: linear-gradient(to top, var(--bg), transparent);
+}
+
+.composer {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+/* ------------------------------- toggles ------------------------------- */
+.composer-toggles {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 2px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.composer-toggles::-webkit-scrollbar {
+  display: none;
+}
+
+.toggle-pill {
+  height: 30px;
+  padding: 0 11px;
+  border-radius: var(--r-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex: none;
+  transition:
+    background var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out);
+}
+
+.toggle-pill .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.toggle-pill:active {
+  background: var(--surface-active);
+}
+
+.toggle-pill[aria-pressed='true'] {
+  color: var(--brand);
+  background: var(--brand-tint);
+  border-color: color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+.toggle-pill[disabled] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.composer-hint {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-quaternary);
+  flex: none;
+  padding-right: 2px;
+}
+
+/* ------------------------------- the box ------------------------------- */
+/* The expand affordance gets its own strip above the box, so it can never
+   cover the right end of the first text line. */
+.composer-input-area {
+  position: relative;
+}
+
+.composer-input-area.has-expand {
+  padding-top: 20px;
+}
+
+.composer-box {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 6px 6px 6px 4px;
+  border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition:
+    border-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out),
+    background var(--dur-2) var(--ease-out);
+}
+
+.composer-box.is-focused {
+  background: var(--bg-elevated);
+  border-color: color-mix(in srgb, var(--brand) 42%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 11%, transparent);
+}
+
+.composer-input-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.composer-textarea {
+  width: 100%;
+  resize: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: 15.5px;
+  /* Integer line box (24px) so three lines fit the capped height exactly and
+     no glyph is clipped vertically. */
+  line-height: 24px;
+  color: var(--text);
+  padding: 8px 4px 8px 6px;
+  /* Three lines = 3 × 24 + 16 padding = 88px; the JS autosize keeps in sync. */
+  max-height: 88px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.composer-textarea::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ---------------------- full-screen editing affordance ---------------------- */
+.composer-expand {
+  position: absolute;
+  top: 0;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-1);
+  z-index: 3;
+  animation: pop-in var(--dur-2) var(--ease-out);
+}
+
+.composer-expand:active {
+  background: var(--surface-active);
+  color: var(--text);
+}
+
+/* ------------------------------ full screen ------------------------------ */
+.composer-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-toast) - 1);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  padding-top: var(--safe-top);
+  animation: fade-in var(--dur-2) var(--ease-out);
+}
+
+.composer-fs-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  flex: none;
+}
+
+.composer-fs-title {
+  flex: 1;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.composer-fs-count {
+  font-size: var(--fs-xs);
+  color: var(--text-quaternary);
+}
+
+.composer-fs-textarea {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--text);
+  padding: 16px var(--gutter) 16px;
+  font-family: var(--font-sans);
+  font-size: var(--md-fs, 15.5px);
+  line-height: 1.62;
+  overflow-y: auto;
+}
+
+.composer-fs-textarea::placeholder {
+  color: var(--text-quaternary);
+}
+
+.composer-fs-foot {
+  flex: none;
+  padding: 10px var(--gutter) calc(12px + var(--safe-bottom));
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-xs);
+  color: var(--text-quaternary);
+}
+
+.composer-textarea::placeholder {
+  color: var(--text-quaternary);
+}
+
+/* ---------------------- attachments inside the box ---------------------- */
+.attach-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 6px 2px;
+}
+
+.attach-chip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 5px 24px 5px 5px;
+  border-radius: var(--r-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  animation: pop-in var(--dur-2) var(--ease-out);
+}
+
+.attach-thumb {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex: none;
+  background: var(--surface);
+}
+
+.attach-fileicon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+
+.attach-fileicon .svg-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.attach-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.attach-name {
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--text);
+  max-width: 168px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attach-meta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.attach-meta .uploading {
+  color: var(--brand);
+}
+
+.attach-meta .failed {
+  color: var(--danger);
+}
+
+.attach-remove {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: var(--shadow-1);
+}
+
+.attach-remove .svg-icon {
+  width: 11px;
+  height: 11px;
+}
+
+.attach-progress {
+  position: absolute;
+  left: 5px;
+  right: 24px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.attach-progress i {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  border-radius: 2px;
+  transition: width var(--dur-2) linear;
+}
+
+/* ------------------------------- buttons ------------------------------- */
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-bottom: 1px;
+  flex: none;
+}
+
+.composer-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition:
+    background var(--dur-1) var(--ease-out),
+    transform var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
+  flex: none;
+}
+
+.composer-btn:active {
+  background: var(--bg-active);
+  transform: scale(0.94);
+}
+
+.composer-btn[disabled] {
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.composer-btn .svg-icon {
+  width: 21px;
+  height: 21px;
+}
+
+/* The send button is always mounted; it only dims when there is nothing to send
+   (swapping it for a mic icon made it look like it "vanished" in later turns). */
+.composer-send {
+  background: var(--surface-active);
+  color: var(--text-quaternary);
+  box-shadow: none;
+  transition:
+    background var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out),
+    transform var(--dur-1) var(--ease-out);
+}
+
+.composer-send.is-active {
+  background: var(--brand);
+  color: var(--brand-contrast);
+  box-shadow: 0 1px 3px var(--brand-glow);
+}
+
+.composer-send.is-active:active {
+  background: var(--brand-strong);
+  transform: scale(0.94);
+}
+
+.composer-stop {
+  background: var(--brand);
+  color: var(--brand-contrast);
+  box-shadow: 0 1px 3px var(--brand-glow);
+}
+
+.composer-stop:active {
+  background: var(--brand-strong);
+}
+
+.composer-send .svg-icon,
+.composer-stop .svg-icon {
+  width: 19px;
+  height: 19px;
+}
+
+/* ------------------------- demo / offline notice ------------------------- */
+.composer-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 0 7px;
+  font-size: 11.5px;
+  color: var(--text-quaternary);
+  text-align: center;
+}
+
+.composer-notice button {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+/* ------------------------------ drag target ------------------------------ */
+.composer.is-dragover .composer-box {
+  border-color: var(--brand);
+  background: var(--brand-tint);
+}

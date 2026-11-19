@@ -1,0 +1,26 @@
+// Prepend China-friendly mirrors so Gradle doesn't stall on the slow
+// Cloudflare-fronted upstream repositories (repo1.maven.org / plugins.gradle.org).
+//
+// Usage:
+//   cd android
+//   ./gradlew assembleDebug --init-script aliyun-mirrors.init.gradle
+//
+// Mirrors are added at project creation time, i.e. before each project's own
+// build.gradle declares google()/mavenCentral(), so they are tried first and the
+// slow upstreams are never hit for artifacts the mirror can serve.
+
+allprojects {
+    buildscript {
+        repositories {
+            maven { url 'https://maven.aliyun.com/repository/google' }
+            maven { url 'https://maven.aliyun.com/repository/central' }
+            maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+            maven { url 'https://maven.aliyun.com/repository/public' }
+        }
+    }
+    repositories {
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+    }
+}

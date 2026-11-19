@@ -1,0 +1,225 @@
+/* =========================================================================
+   DeepSeek Mobile — Design tokens
+   Faithful re-creation of the official DeepSeek app visual language:
+   brand blue #4D6BFE, generous white space, soft 18-20px radii, low-contrast
+   borders, and a calm neutral typographic scale.
+   Light is the default theme; `[data-theme='dark']` is applied by the app on
+   the <html> element (auto / light / dark are user-selectable).
+   ========================================================================= */
+
+:root {
+  /* ---------- brand ---------- */
+  --brand: #4d6bfe;
+  --brand-strong: #3b57e8;
+  --brand-press: #344dd0;
+  --brand-weak: #6c86ff;
+  --brand-tint: #edf1ff;
+  --brand-tint-hover: #e3e9ff;
+  --brand-contrast: #ffffff;
+  --brand-glow: rgba(77, 107, 254, 0.28);
+
+  /* ---------- surfaces ---------- */
+  --bg: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-sunken: #f7f8fa;
+  --bg-canvas: #f7f8fa;
+  --surface: #f5f6f8;
+  --surface-hover: #eff1f4;
+  --surface-active: #e8eaef;
+  --bg-hover: rgba(23, 24, 27, 0.045);
+  --bg-active: rgba(23, 24, 27, 0.08);
+
+  /* ---------- text ---------- */
+  --text: #17181b;
+  --text-secondary: #5f6470;
+  --text-tertiary: #8b909c;
+  --text-quaternary: #a9adb7;
+  --text-inverse: #ffffff;
+  --text-on-brand: #ffffff;
+
+  /* ---------- lines ---------- */
+  --border: rgba(23, 24, 27, 0.09);
+  --border-strong: rgba(23, 24, 27, 0.16);
+  --divider: rgba(23, 24, 27, 0.07);
+  --focus-ring: rgba(77, 107, 254, 0.35);
+
+  /* ---------- chat bubbles ---------- */
+  --bubble-user: #edf1ff;
+  --bubble-user-text: #17181b;
+  --bubble-user-border: transparent;
+  --bubble-assistant: transparent;
+
+  /* ---------- semantic ---------- */
+  --danger: #e5484d;
+  --danger-tint: #fdeeee;
+  --warning: #f5a623;
+  --warning-tint: #fff6e5;
+  --success: #30a46c;
+  --success-tint: #e9f7f0;
+  --info: #4d6bfe;
+
+  /* ---------- code ---------- */
+  --code-bg: #f6f7f9;
+  --code-head: #eef0f4;
+  --code-border: rgba(23, 24, 27, 0.08);
+  --code-text: #24292f;
+  --inline-code-bg: rgba(23, 24, 27, 0.055);
+  --inline-code-text: #c7254e;
+
+  /* ---------- thinking ---------- */
+  --thinking-text: #8b909c;
+  --thinking-line: rgba(23, 24, 27, 0.1);
+  --thinking-bg: #fafbfc;
+
+  /* ---------- source / citation ---------- */
+  --source-chip-bg: #f5f6f8;
+  --source-chip-hover: #eceef2;
+  --citation: #4d6bfe;
+
+  /* ---------- elevation ---------- */
+  --shadow-1: 0 1px 2px rgba(23, 24, 27, 0.05), 0 1px 3px rgba(23, 24, 27, 0.04);
+  --shadow-2: 0 6px 20px rgba(23, 24, 27, 0.1), 0 2px 6px rgba(23, 24, 27, 0.05);
+  --shadow-3: 0 16px 48px rgba(23, 24, 27, 0.16), 0 4px 12px rgba(23, 24, 27, 0.07);
+  --shadow-sheet: 0 -8px 40px rgba(23, 24, 27, 0.12);
+
+  /* ---------- radii ---------- */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 22px;
+  --r-2xl: 28px;
+  --r-pill: 999px;
+
+  /* ---------- spacing ---------- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+
+  /* ---------- typography ---------- */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono:
+    'SF Mono', 'JetBrains Mono', 'Cascadia Code', 'Roboto Mono', Menlo, Consolas,
+    'Courier New', monospace;
+
+  /* Base typography. The 正文字号 setting scales the whole UI with CSS zoom
+     (see applyFontScale in App.tsx), so these stay at their design values. */
+  --fs-2xs: 11px;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 15px;
+  --fs-md: 16px;
+  --fs-lg: 17px;
+  --fs-xl: 20px;
+  --fs-2xl: 24px;
+  --fs-3xl: 30px;
+
+  --lh-tight: 1.32;
+  --lh-normal: 1.55;
+  --lh-relaxed: 1.72;
+
+  /* ---------- layout ---------- */
+  --header-h: 54px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --content-max: 760px;
+  --gutter: 16px;
+
+  /* ---------- motion ---------- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+
+  /* ---------- z-index ---------- */
+  --z-header: 20;
+  --z-composer: 30;
+  --z-drawer: 60;
+  /* Full-screen pages (settings) sit below transient sheets/dialogs. */
+  --z-settings: 62;
+  --z-sheet: 70;
+  --z-modal: 80;
+  --z-toast: 90;
+  --z-splash: 100;
+
+  color-scheme: light;
+}
+
+/* ===========================  DARK THEME  =========================== */
+[data-theme='dark'] {
+  --brand: #6c86ff;
+  --brand-strong: #5b78ff;
+  --brand-press: #4d6bfe;
+  --brand-weak: #8ba0ff;
+  --brand-tint: #1e2745;
+  --brand-tint-hover: #263157;
+  --brand-contrast: #101218;
+  --brand-glow: rgba(108, 134, 255, 0.32);
+
+  --bg: #17181c;
+  --bg-elevated: #1d1f24;
+  --bg-sunken: #121317;
+  --bg-canvas: #121317;
+  --surface: #212329;
+  --surface-hover: #282b32;
+  --surface-active: #2f333b;
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --bg-active: rgba(255, 255, 255, 0.1);
+
+  --text: #eceef2;
+  --text-secondary: #b3b8c3;
+  --text-tertiary: #878d99;
+  --text-quaternary: #666c78;
+  --text-inverse: #17181c;
+  --text-on-brand: #0f1116;
+
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --divider: rgba(255, 255, 255, 0.07);
+  --focus-ring: rgba(108, 134, 255, 0.45);
+
+  --bubble-user: #232a45;
+  --bubble-user-text: #e9ecf5;
+  --bubble-user-border: rgba(108, 134, 255, 0.16);
+  --bubble-assistant: transparent;
+
+  --danger: #ff6369;
+  --danger-tint: #2a1a1c;
+  --warning: #ffb224;
+  --warning-tint: #2a2317;
+  --success: #3dd68c;
+  --success-tint: #14251d;
+  --info: #6c86ff;
+
+  --code-bg: #1b1d22;
+  --code-head: #23262c;
+  --code-border: rgba(255, 255, 255, 0.08);
+  --code-text: #dfe3ea;
+  --inline-code-bg: rgba(255, 255, 255, 0.08);
+  --inline-code-text: #ff9db3;
+
+  --thinking-text: #878d99;
+  --thinking-line: rgba(255, 255, 255, 0.12);
+  --thinking-bg: rgba(255, 255, 255, 0.02);
+
+  --source-chip-bg: #212329;
+  --source-chip-hover: #282b32;
+  --citation: #8ba0ff;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 6px 20px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-3: 0 16px 48px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.5);
+
+  color-scheme: dark;
+}

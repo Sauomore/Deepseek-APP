@@ -1,0 +1,522 @@
+/* =========================================================================
+   Assistant content blocks: thinking panel, web-search cards, read-link card,
+   citation badges, notices and warnings.
+   ========================================================================= */
+
+/* ------------------------------ thinking ------------------------------ */
+.thinking {
+  border-radius: var(--r-md);
+  background: var(--thinking-bg);
+  border: 1px solid var(--divider);
+  overflow: hidden;
+  transition: background var(--dur-2) var(--ease-out);
+}
+
+.thinking-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  text-align: left;
+  color: var(--text-tertiary);
+}
+
+.thinking-head:active {
+  background: var(--bg-hover);
+}
+
+.thinking-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  flex: none;
+}
+
+.thinking-icon .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.thinking-label {
+  font-size: var(--fs-sm);
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  flex: none;
+}
+
+.thinking-meta {
+  font-size: 11.5px;
+  color: var(--text-quaternary);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+
+.thinking-head .chevron {
+  margin-left: auto;
+  flex: none;
+  display: inline-flex;
+  transition: transform var(--dur-2) var(--ease-out);
+  color: var(--text-quaternary);
+}
+
+.thinking-head .chevron .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.thinking[data-open='true'] .chevron {
+  transform: rotate(180deg);
+}
+
+.thinking-body {
+  padding: 1px 13px 12px;
+  font-size: 13.5px;
+  line-height: 1.72;
+  color: var(--thinking-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 340px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid var(--divider);
+  padding-top: 11px;
+  animation: fade-in var(--dur-2) var(--ease-out);
+}
+
+.thinking-body.is-live {
+  /* While reasoning streams, keep the newest text visible. */
+  scroll-behavior: auto;
+}
+
+/* Shimmer placeholders shown before the first thinking token arrives. */
+.thinking-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 11px 13px 13px;
+}
+
+.shimmer-line {
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--surface) 25%,
+    var(--surface-active) 37%,
+    var(--surface) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.shimmer-line:nth-child(2) {
+  width: 88%;
+  animation-delay: 0.1s;
+}
+
+.shimmer-line:nth-child(3) {
+  width: 64%;
+  animation-delay: 0.2s;
+}
+
+/* ---------------------------- tool cards ---------------------------- */
+.tool-card {
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+.tool-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  min-height: 40px;
+  width: 100%;
+  text-align: left;
+  transition: background var(--dur-1) var(--ease-out);
+}
+
+.tool-head:active {
+  background: var(--bg-hover);
+}
+
+/* Collapse affordance: the whole header row is the toggle. */
+.tool-chevron {
+  flex: none;
+  display: inline-flex;
+  color: var(--text-quaternary);
+  transition: transform var(--dur-2) var(--ease-out);
+}
+
+.tool-chevron .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.tool-card[data-open='true'] .tool-chevron {
+  transform: rotate(180deg);
+}
+
+.tool-body {
+  animation: fade-in var(--dur-2) var(--ease-out);
+}
+
+.tool-head-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-tint);
+  color: var(--brand);
+  flex: none;
+}
+
+.tool-head-icon .svg-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.tool-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.tool-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.tool-subtitle {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-badge {
+  margin-left: auto;
+  flex: none;
+  font-size: 11px;
+  color: var(--text-quaternary);
+  font-variant-numeric: tabular-nums;
+}
+
+.query-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 12px 11px;
+}
+
+.query-chip {
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 9px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text-secondary);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------------------- source list ---------------------------- */
+.source-list {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--divider);
+}
+
+/* "展开全部 N 条" toggle under a source list. */
+.source-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 550;
+  color: var(--brand);
+  border-top: 1px solid var(--divider);
+  transition: background var(--dur-1) var(--ease-out);
+}
+
+.source-more:active {
+  background: var(--bg-hover);
+}
+
+.source-more .svg-icon {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--dur-2) var(--ease-out);
+}
+
+/* --------------------------- page read rows --------------------------- */
+.page-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--divider);
+  text-align: left;
+  width: 100%;
+}
+
+.page-row:last-child {
+  border-bottom: 0;
+}
+
+.page-row .source-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-row .source-meta {
+  font-size: 11px;
+  color: var(--text-quaternary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.page-open {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  transition: background var(--dur-1) var(--ease-out);
+}
+
+.page-open:active {
+  background: var(--bg-active);
+}
+
+.source-index.is-failed {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+.source-title.is-failed {
+  color: var(--danger);
+}
+
+.source-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+  text-align: left;
+  width: 100%;
+  border-bottom: 1px solid var(--divider);
+  transition: background var(--dur-1) var(--ease-out);
+}
+
+.source-item:last-child {
+  border-bottom: 0;
+}
+
+.source-item:active {
+  background: var(--bg-hover);
+}
+
+.source-index {
+  width: 17px;
+  height: 17px;
+  border-radius: 5px;
+  flex: none;
+  margin-top: 1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-tint);
+  color: var(--brand);
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.source-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.source-title {
+  font-size: 13px;
+  font-weight: 520;
+  line-height: 1.42;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.source-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  min-width: 0;
+}
+
+.source-favicon {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  object-fit: cover;
+  flex: none;
+  background: var(--surface);
+}
+
+.source-site {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-age::before {
+  content: '·';
+  margin-right: 5px;
+  opacity: 0.6;
+}
+
+.source-snippet {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ---------------------------- citation badges ---------------------------- */
+.cite-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  margin: 0 2px;
+  border-radius: 4px;
+  background: var(--brand-tint);
+  color: var(--brand);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: 2px;
+  font-variant-numeric: tabular-nums;
+  transition: background var(--dur-1) var(--ease-out);
+}
+
+.cite-badge:active {
+  background: var(--brand-tint-hover);
+}
+
+.cite-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+/* ------------------------------ notices ------------------------------ */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 13px;
+  border-radius: var(--r-md);
+  font-size: 13.5px;
+  line-height: 1.58;
+}
+
+.notice .svg-icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  margin-top: 1px;
+}
+
+.notice-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notice-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.notice-detail {
+  opacity: 0.85;
+  font-size: 12.5px;
+  word-break: break-word;
+}
+
+.notice--error {
+  background: var(--danger-tint);
+  color: var(--danger);
+}
+
+.notice--warn {
+  background: var(--warning-tint);
+  color: var(--warning);
+}
+
+.notice--info {
+  background: var(--surface);
+  color: var(--text-secondary);
+}
+
+.notice-retry {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  background: var(--bg-elevated);
+  color: var(--danger);
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid currentColor;
+  border-color: color-mix(in srgb, currentColor 26%, transparent);
+}
+
+.notice-retry:active {
+  opacity: 0.7;
+}
+
+/* --------------------------- empty answer state --------------------------- */
+.assistant-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-sm);
+  color: var(--text-tertiary);
+  min-height: 26px;
+}

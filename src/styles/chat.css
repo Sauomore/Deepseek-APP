@@ -1,0 +1,488 @@
+/* =========================================================================
+   Chat screen: header, scroll area, bubbles, message actions, empty state.
+   ========================================================================= */
+
+.chat-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+  position: relative;
+}
+
+/* ------------------------------- header ------------------------------- */
+.chat-header {
+  position: relative;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  /* The WebView draws under the status bar (edge-to-edge), so reserve it here. */
+  height: calc(var(--header-h) + var(--safe-top));
+  padding: var(--safe-top) 6px 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  flex: none;
+}
+
+.chat-header--floating {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.header-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.model-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  height: 32px;
+  padding: 0 10px 0 12px;
+  border-radius: var(--r-pill);
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  transition: background var(--dur-1) var(--ease-out);
+}
+
+.model-pill:active {
+  background: var(--bg-active);
+}
+
+.model-pill .svg-icon {
+  color: var(--text-tertiary);
+  transition: transform var(--dur-2) var(--ease-out);
+}
+
+.model-pill[aria-expanded='true'] .svg-icon {
+  transform: rotate(180deg);
+}
+
+.model-pill-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+/* ------------------------------ messages ------------------------------ */
+.messages-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-top: calc(var(--header-h) + 8px);
+  scroll-padding-bottom: 24px;
+}
+
+.messages-inner {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 4px var(--gutter) 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.messages-inner--empty {
+  height: 100%;
+  justify-content: center;
+}
+
+/* ------------------------------- user turn ------------------------------- */
+.msg-user {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  animation: slide-up var(--dur-3) var(--ease-out);
+}
+
+.bubble-user {
+  max-width: 84%;
+  padding: 10px 14px;
+  border-radius: 18px 18px 6px 18px;
+  background: var(--bubble-user);
+  color: var(--bubble-user-text);
+  border: 1px solid var(--bubble-user-border);
+  font-size: 15.5px;
+  line-height: 1.62;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.bubble-user:empty {
+  display: none;
+}
+
+/* ---------------------------- assistant turn ---------------------------- */
+.msg-assistant {
+  display: block;
+  animation: fade-in var(--dur-2) var(--ease-out);
+}
+
+.msg-assistant-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* --------------------------- streaming caret --------------------------- */
+.stream-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.02em;
+  margin-left: 2px;
+  border-radius: 1px;
+  background: var(--brand);
+  vertical-align: -0.16em;
+  animation: caret-blink 1.05s steps(2, start) infinite;
+}
+
+/* --------------------------- generation status --------------------------- */
+.gen-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-sm);
+  color: var(--text-tertiary);
+}
+
+.gen-status .shake-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse-dot 1.25s var(--ease-in-out) infinite;
+}
+
+.gen-status .shake-dot:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.gen-status .shake-dot:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+/* ---------------------------- message actions ---------------------------- */
+.msg-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 2px;
+  margin-left: -6px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 9px;
+  border-radius: var(--r-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  transition:
+    background var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
+}
+
+.action-btn .svg-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.action-btn:active {
+  background: var(--bg-active);
+  color: var(--text-secondary);
+}
+
+.action-btn.is-active {
+  color: var(--brand);
+}
+
+.action-btn--danger:active {
+  color: var(--danger);
+}
+
+.action-spacer {
+  flex: 1;
+}
+
+/* -------------------------------- usage -------------------------------- */
+.usage-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--text-quaternary);
+  font-variant-numeric: tabular-nums;
+}
+
+.usage-line .dot {
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ------------------------- scroll to bottom FAB ------------------------- */
+.scroll-bottom {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-2);
+  z-index: 12;
+  animation: pop-in var(--dur-2) var(--ease-out);
+}
+
+.scroll-bottom .svg-icon {
+  width: 19px;
+  height: 19px;
+}
+
+/* ------------------------------ empty state ------------------------------ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 4px 32px;
+  animation: fade-in var(--dur-3) var(--ease-out);
+}
+
+.empty-title {
+  font-size: 23px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.empty-subtitle {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+  max-width: 300px;
+  margin-bottom: 26px;
+}
+
+.suggestions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  width: 100%;
+  max-width: 460px;
+}
+
+.suggestion {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 13px 13px 12px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid transparent;
+  text-align: left;
+  transition:
+    background var(--dur-1) var(--ease-out),
+    transform var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out);
+}
+
+.suggestion:active {
+  background: var(--surface-active);
+  transform: scale(0.985);
+}
+
+.suggestion-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-tint);
+  color: var(--brand);
+  flex: none;
+}
+
+.suggestion-icon .svg-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.suggestion-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.suggestion-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+/* Offline / demo badge in the header */
+.demo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warning);
+  background: var(--warning-tint);
+  flex: none;
+}
+
+/* -------------------------- user attachments -------------------------- */
+.user-attachments {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 84%;
+}
+
+.user-attachment-image {
+  width: 104px;
+  height: 104px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  flex: none;
+  transition: transform var(--dur-1) var(--ease-out);
+}
+
+.user-attachment-image:active {
+  transform: scale(0.97);
+}
+
+.user-attachment-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin: 0;
+  border-radius: 0;
+}
+
+.user-attachment-fallback {
+  width: 100%;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+}
+
+.user-attachment-file {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px 8px 9px;
+  border-radius: var(--r-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  max-width: 240px;
+}
+
+.user-attachment-fileicon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-tint);
+  color: var(--brand);
+  flex: none;
+}
+
+.user-attachment-fileicon .svg-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.user-attachment-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.user-attachment-name {
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-attachment-sub {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* --------------------------- answer blocks --------------------------- */
+.answer-block {
+  display: block;
+}
+
+.answer-block + .answer-block {
+  margin-top: 2px;
+}
+
+.cite-inline {
+  display: inline;
+  white-space: nowrap;
+}
+
+/* Consecutive markdown blocks should not double-space. */
+.msg-assistant-body > .md + .md {
+  margin-top: -2px;
+}
+

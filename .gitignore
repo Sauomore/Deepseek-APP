@@ -1,0 +1,50 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+dist-ssr/
+*.local
+
+# packaged APKs live in GitHub Releases, not in git
+*.apk
+*.aab
+release/keystore*
+
+# Capacitor / Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/capacitor-cordova-android-plugins/build/
+android/app/release/
+*.keystore
+!debug.keystore
+android/keystore.properties
+
+# env & secrets 鈥?never commit API keys
+.env
+.env.*
+!.env.example
+secrets/
+*.key
+
+# editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# generated artifacts
+artifacts/
+temp/
+
+# tool caches
+.cache/
