@@ -1624,51 +1624,45 @@
 }
 
 /* ------------------------------ drawer feature ------------------------------ */
+/* A plain drawer row: icon + label + chevron, no card background. */
 .drawer-feature {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  margin: 6px 0 2px;
-  padding: 10px;
-  border-radius: var(--r-md);
-  background: var(--surface);
+  margin: 2px 0 6px;
+  padding: 11px 8px;
+  border-radius: var(--r-sm);
+  background: none;
   text-align: left;
+  color: var(--text);
 }
 
 .drawer-feature:active {
-  background: var(--surface-active);
+  background: var(--surface-hover);
 }
 
 .drawer-feature-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: var(--r-sm);
-  background: var(--brand-tint);
+  width: 20px;
+  height: 20px;
   color: var(--brand);
   flex: none;
 }
 
-.drawer-feature-body {
+.drawer-feature-title {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.drawer-feature-title {
   font-size: var(--fs-base);
   font-weight: 600;
   color: var(--text);
 }
 
-.drawer-feature-desc {
-  font-size: var(--fs-2xs);
-  color: var(--text-tertiary);
+.drawer-feature .chev {
+  color: var(--text-quaternary);
+  display: inline-flex;
 }
 
 /* ------------------------------ settings extras ------------------------------ */
@@ -1758,4 +1752,94 @@
   margin-left: auto;
   font-size: var(--fs-xs);
   color: var(--text-tertiary);
+}
+
+/* ------------------------------ update checker ------------------------------ */
+.update-checking {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 4px;
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+
+.update-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0 8px;
+}
+
+.update-available {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.update-available b {
+  color: var(--brand);
+}
+
+.update-available-cur {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+.update-notes {
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border-radius: var(--r-sm);
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+.update-uptodate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--success);
+}
+
+.update-error {
+  font-size: var(--fs-sm);
+  color: var(--danger);
+  background: var(--danger-tint);
+  border-radius: var(--r-sm);
+  padding: 10px 12px;
+}
+
+.update-downloading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.update-downloading span {
+  color: var(--brand);
+}
+
+.update-progress {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--surface-active);
+  overflow: hidden;
+}
+
+.update-progress i {
+  display: block;
+  height: 100%;
+  background: var(--brand);
+  border-radius: inherit;
+  transition: width var(--dur-2) var(--ease-out);
 }

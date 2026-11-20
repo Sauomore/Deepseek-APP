@@ -6,7 +6,7 @@
  * driven by `UpdateNotice`.
  */
 
-export const APP_VERSION = '1.1.0'
+export const APP_VERSION = '1.2.0'
 
 export interface ReleaseNote {
   version: string
@@ -15,6 +15,15 @@ export interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: ReleaseNote[] = [
+  {
+    version: '1.2.0',
+    date: '2026-11-20',
+    items: [
+      '新增：设置 → 关于 → 检查更新（对接 GitHub Release，可直接在应用内下载并安装新版本）',
+      '抽屉里的「创作模式」入口改为简洁行样式（去掉卡片底色）',
+      '创作模式的灵感输入框占位改为「请输入灵感」',
+    ],
+  },
   {
     version: '1.1.0',
     date: '2026-11-20',

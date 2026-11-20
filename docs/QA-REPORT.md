@@ -61,6 +61,30 @@ application-label: Deepseek APP
 
 ### 2.1 真机反馈修复
 
+#### 1.2.0 —— 检查更新（应用内升级）+ 入口样式调整
+
+**检查更新**
+
+- `GET /repos/Sauomore/Deepseek-APP/releases/latest`（公开仓库，无需 token），取 `tag_name` 与资源里的 `*.apk`，用语义化版本比较当前版本。
+- **WebView 无法直接下载安装包**：Release 资源会 302 到 `objects.githubusercontent.com`，该响应不带 CORS 头，页面内 `fetch` 直接 `TypeError: Failed to fetch`（已实测复现）。因此下载改由**原生插件 `AppUpdaterPlugin`** 用 `HttpURLConnection` 完成：写入 `cacheDir/updates/`，每 150ms 通过 `notifyListeners('progress')` 回报进度，完成后 `FileProvider` + `ACTION_VIEW` 拉起系统安装器。
+- 首启需要「安装未知来源的应用」：插件里 `canRequestPackageInstalls()` 不通过时跳到 `ACTION_MANAGE_UNKNOWN_APP_SOURCES` 并提示。
+- 安装完成后由 `PackageReplacedReceiver`（`MY_PACKAGE_REPLACED`）尝试重新拉起应用；Android 可能拦截后台 Activity 启动，安装器的「打开」按钮是兜底。
+- 浏览器预览环境走 `openExternal(apkUrl)`，不安装。
+
+**验证**
+
+| 场景 | 结果 |
+| --- | --- |
+| 真实 GitHub API（当前 1.2.0，最新 v1.1.0） | 显示「已是最新版本 v1.2.0」，提示最新发布 v1.1.0 ✅ |
+| 伪造 v9.9.9 响应 | 显示「发现新版本 v9.9.9（当前 v1.2.0）」+ 安装包约 6MB + 发布说明 + 按钮 ✅ |
+| 页面内 fetch 真实 APK | `TypeError: Failed to fetch`（CORS 拦截）→ 证实必须原生下载 ✅ |
+| Java 插件编译 | `assembleRelease` 通过 ✅ |
+
+**UI 调整**
+
+- 抽屉入口改为 `[图标] 创作模式 ›` 单行样式，无卡片底色（`background: rgba(0,0,0,0)`，无副标题）✅
+- 创作模式灵感输入框占位为「请输入灵感」✅
+
 #### 1.1.0 —— 创作模式（新功能）
 
 长文写作工作台，面向论文、小说、连载等需要连续输出的场景。

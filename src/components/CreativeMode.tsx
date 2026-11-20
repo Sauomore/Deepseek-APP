@@ -366,7 +366,7 @@ export function CreativeMode() {
               <textarea
                 ref={instructionRef}
                 className="creative-instruction-input"
-                placeholder="本轮想怎么写？（可留空，例如：让主角在雨夜遇到旧友）"
+                placeholder="请输入灵感"
                 rows={1}
                 defaultValue={instruction}
                 onChange={(event) => setInstruction(event.target.value)}

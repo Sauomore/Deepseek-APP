@@ -30,6 +30,13 @@ import { useSettingsStore } from '@/store/settings'
 import { toast, useUiStore } from '@/store/ui'
 import { APP_VERSION, RELEASE_NOTES } from '@/lib/version'
 import { InputDiagnostics } from '@/components/InputDiagnostics'
+import {
+  canInstallInApp,
+  checkForUpdate,
+  downloadAndInstallApk,
+  RELEASES_PAGE,
+  type UpdateInfo,
+} from '@/lib/update'
 import { MODEL_META } from '@/types/api'
 import {
   MAX_OUTPUT_OPTIONS,
@@ -81,8 +88,16 @@ export function SettingsPage() {
   const [baseUrlDraft, setBaseUrlDraft] = useState(settings.baseUrl)
   const [testing, setTesting] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
-  const [panel, setPanel] = useState<null | 'prompt' | 'tokens' | 'changelog' | 'diag'>(null)
+  const [panel, setPanel] = useState<null | 'prompt' | 'tokens' | 'changelog' | 'diag' | 'update'>(null)
   const [promptDraft, setPromptDraft] = useState(settings.systemPrompt)
+  const [updateState, setUpdateState] = useState<{
+    status: 'idle' | 'checking' | 'ready' | 'downloading' | 'installing' | 'error'
+    info?: UpdateInfo
+    error?: string
+    progress?: number
+    received?: number
+    total?: number
+  }>({ status: 'idle' })
   const keyInputRef = useRef<HTMLInputElement>(null)
   const baseUrlInputRef = useRef<HTMLInputElement>(null)
   const promptInputRef = useRef<HTMLTextAreaElement>(null)
@@ -144,6 +159,51 @@ export function SettingsPage() {
     if (next !== settings.baseUrl) {
       update({ baseUrl: next })
       toast('接口地址已保存', 'success')
+    }
+  }
+
+  /* ------------------------------ update check ------------------------------ */
+  const runUpdateCheck = async () => {
+    setUpdateState({ status: 'checking' })
+    try {
+      const info = await checkForUpdate()
+      setUpdateState({ status: 'ready', info })
+    } catch (error) {
+      setUpdateState({
+        status: 'error',
+        error: error instanceof Error ? error.message : '检查更新失败',
+      })
+    }
+  }
+
+  const startUpdate = async (info: UpdateInfo) => {
+    if (!info.apkUrl) {
+      openExternal(info.releaseUrl)
+      return
+    }
+    if (!canInstallInApp()) {
+      // Browser preview: hand the download to the system browser.
+      openExternal(info.apkUrl)
+      toast('已打开发布页，请下载安装包')
+      return
+    }
+    setUpdateState({ status: 'downloading', info, progress: 0 })
+    try {
+      await downloadAndInstallApk(
+        info.apkUrl,
+        info.apkName ?? `Deepseek-APP-${info.latest}.apk`,
+        (ratio, received, total) => {
+          setUpdateState({ status: 'downloading', info, progress: ratio, received, total })
+        },
+      )
+      setUpdateState({ status: 'installing', info, progress: 1 })
+      toast('已拉起系统安装器，按提示完成安装')
+    } catch (error) {
+      setUpdateState({
+        status: 'error',
+        info,
+        error: error instanceof Error ? error.message : '更新失败',
+      })
     }
   }
 
@@ -531,6 +591,24 @@ export function SettingsPage() {
                 <span className="settings-row-desc">Deepseek APP {APP_VERSION} · 非官方客户端</span>
               </span>
             </div>
+            <button
+              type="button"
+              className="settings-row"
+              onClick={() => {
+                setPanel('update')
+                void runUpdateCheck()
+              }}
+            >
+              <span className="settings-row-main">
+                <span className="settings-row-title">检查更新</span>
+                <span className="settings-row-desc">
+                  当前 v{APP_VERSION} · 检测 GitHub Release 并可直接下载安装
+                </span>
+              </span>
+              <span className="chev">
+                <ChevronRightIcon />
+              </span>
+            </button>
             <button type="button" className="settings-row" onClick={() => setPanel('changelog')}>
               <span className="settings-row-main">
                 <span className="settings-row-title">更新日志</span>
@@ -702,6 +780,125 @@ export function SettingsPage() {
                   </ul>
                 </div>
               ))}
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {/* ----------------------------- 检查更新 ----------------------------- */}
+      {panel === 'update' ? (
+        <>
+          <div className="scrim scrim--sheet" onClick={() => setPanel(null)} />
+          <div className="sheet" role="dialog" aria-modal="true" aria-label="检查更新">
+            <div className="sheet-grabber" />
+            <div className="sheet-head">
+              <div>
+                <div className="sheet-title">检查更新</div>
+                <div className="sheet-sub">当前版本 v{APP_VERSION}</div>
+              </div>
+              <button type="button" className="icon-btn sheet-close" onClick={() => setPanel(null)} aria-label="关闭">
+                <CloseIcon />
+              </button>
+            </div>
+            <div className="sheet-body">
+              {updateState.status === 'checking' ? (
+                <div className="update-checking">
+                  <span className="spinner" /> 正在检查 GitHub 上的最新版本…
+                </div>
+              ) : null}
+
+              {updateState.status === 'error' ? (
+                <div className="update-block">
+                  <div className="update-error">{updateState.error ?? '检查更新失败'}</div>
+                  <div className="settings-actions">
+                    <button type="button" className="btn btn--ghost" onClick={() => openExternal(RELEASES_PAGE)}>
+                      打开发布页
+                    </button>
+                    <button type="button" className="btn btn--primary" onClick={() => void runUpdateCheck()}>
+                      重试
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {updateState.status === 'ready' && updateState.info ? (
+                updateState.info.hasUpdate ? (
+                  <div className="update-block">
+                    <div className="update-available">
+                      发现新版本 <b>v{updateState.info.latest}</b>
+                      <span className="update-available-cur">（当前 v{updateState.info.current}）</span>
+                    </div>
+                    {updateState.info.apkSize > 0 ? (
+                      <div className="field-hint">
+                        安装包约 {Math.round(updateState.info.apkSize / 1024 / 1024)} MB
+                        {updateState.info.publishedAt
+                          ? ` · ${updateState.info.publishedAt.slice(0, 10)} 发布`
+                          : ''}
+                      </div>
+                    ) : null}
+                    {updateState.info.notes ? (
+                      <div className="update-notes">{updateState.info.notes.slice(0, 600)}</div>
+                    ) : null}
+                    <div className="settings-actions">
+                      <button type="button" className="btn btn--ghost" onClick={() => openExternal(updateState.info!.releaseUrl)}>
+                        发布页
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn--primary"
+                        onClick={() => void startUpdate(updateState.info!)}
+                      >
+                        {canInstallInApp() ? '下载并安装' : '打开发布页下载'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="update-block">
+                    <div className="update-uptodate">
+                      <CheckIcon size={16} /> 已是最新版本 v{updateState.info.current}
+                    </div>
+                    <div className="field-hint">
+                      最新发布：v{updateState.info.latest}
+                      {updateState.info.publishedAt
+                        ? ` · ${updateState.info.publishedAt.slice(0, 10)}`
+                        : ''}
+                    </div>
+                    <div className="settings-actions">
+                      <button type="button" className="btn btn--primary" onClick={() => void runUpdateCheck()}>
+                        重新检查
+                      </button>
+                    </div>
+                  </div>
+                )
+              ) : null}
+
+              {updateState.status === 'downloading' ? (
+                <div className="update-block">
+                  <div className="update-downloading">
+                    正在下载 v{updateState.info?.latest}…
+                    <span>{Math.round((updateState.progress ?? 0) * 100)}%</span>
+                  </div>
+                  <div className="update-progress">
+                    <i style={{ width: `${Math.round((updateState.progress ?? 0) * 100)}%` }} />
+                  </div>
+                  <div className="field-hint">
+                    {updateState.received && updateState.total
+                      ? `${(updateState.received / 1024 / 1024).toFixed(1)} / ${(updateState.total / 1024 / 1024).toFixed(1)} MB`
+                      : '正在下载安装包，请勿退出应用'}
+                  </div>
+                </div>
+              ) : null}
+
+              {updateState.status === 'installing' ? (
+                <div className="update-block">
+                  <div className="update-uptodate">
+                    <CheckIcon size={16} /> 下载完成，正在拉起系统安装器
+                  </div>
+                  <div className="field-hint">
+                    若系统提示「不允许安装未知来源应用」，请允许后重新点击下载并安装。
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </>

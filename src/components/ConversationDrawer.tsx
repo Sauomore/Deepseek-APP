@@ -127,10 +127,7 @@ export function ConversationDrawer() {
           <span className="drawer-feature-icon">
             <PencilIcon size={17} />
           </span>
-          <span className="drawer-feature-body">
-            <span className="drawer-feature-title">创作模式</span>
-            <span className="drawer-feature-desc">长文写作工作台 · 大纲 / 多轮续写 / 导出 TXT</span>
-          </span>
+          <span className="drawer-feature-title">创作模式</span>
           <span className="chev">
             <ChevronRightIcon size={15} />
           </span>
