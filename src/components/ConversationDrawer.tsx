@@ -5,6 +5,7 @@
 import { useMemo, useRef, useState } from 'react'
 import {
   CheckIcon,
+  ChevronRightIcon,
   CloseIcon,
   MoreIcon,
   PencilIcon,
@@ -26,6 +27,7 @@ export function ConversationDrawer() {
   const open = useUiStore((state) => state.drawerOpen)
   const closeDrawer = useUiStore((state) => state.closeDrawer)
   const openSettings = useUiStore((state) => state.openSettings)
+  const openCreative = useUiStore((state) => state.openCreative)
   const demoMode = useSettingsStore((state) => state.settings.demoMode)
 
   const allConversations = useChatStore((state) => state.conversations)
@@ -112,6 +114,27 @@ export function ConversationDrawer() {
             <CloseIcon />
           </button>
         </div>
+
+        <button
+          type="button"
+          className="drawer-feature"
+          onClick={() => {
+            tapFeedback()
+            closeDrawer()
+            openCreative()
+          }}
+        >
+          <span className="drawer-feature-icon">
+            <PencilIcon size={17} />
+          </span>
+          <span className="drawer-feature-body">
+            <span className="drawer-feature-title">创作模式</span>
+            <span className="drawer-feature-desc">长文写作工作台 · 大纲 / 多轮续写 / 导出 TXT</span>
+          </span>
+          <span className="chev">
+            <ChevronRightIcon size={15} />
+          </span>
+        </button>
 
         <div className="drawer-search">
           <SearchIcon size={16} />

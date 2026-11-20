@@ -277,6 +277,13 @@ export const BookOpenIcon = (props: IconProps) => (
   </Stroke>
 )
 
+export const ArrowLeftIcon = (props: IconProps) => (
+  <Stroke {...props}>
+    <path d="M19.5 12H5" />
+    <path d="M11 5.5 4.5 12l6.5 6.5" />
+  </Stroke>
+)
+
 export const CodeIcon = (props: IconProps) => (
   <Stroke {...props}>
     <path d="M8.8 7.6 4.4 12l4.4 4.4" />

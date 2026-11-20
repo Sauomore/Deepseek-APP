@@ -12,9 +12,11 @@
 import { get, set } from 'idb-keyval'
 import { DEFAULT_SETTINGS, type Settings } from '@/types/settings'
 import type { Conversation } from '@/types/chat'
+import type { CreativeProject } from '@/types/project'
 
 const SETTINGS_KEY = 'deepseek.settings.v1'
 const CONVERSATIONS_KEY = 'deepseek.conversations.v1'
+const PROJECTS_KEY = 'deepseek.projects.v1'
 
 /* ------------------------------------------------------------------ */
 /*  Settings                                                          */
@@ -144,4 +146,45 @@ export function flushNow(conversations: Conversation[]): void {
   }
   pendingConversations = null
   void flushConversations(conversations)
+}
+
+/* ------------------------------------------------------------------ */
+/*  Creation-mode projects                                            */
+/* ------------------------------------------------------------------ */
+
+export async function loadProjects(): Promise<CreativeProject[]> {
+  try {
+    const stored = await get<CreativeProject[]>(PROJECTS_KEY)
+    if (!Array.isArray(stored)) return []
+    return stored
+  } catch {
+    return []
+  }
+}
+
+let projectsTimer: number | undefined
+let pendingProjects: CreativeProject[] | null = null
+
+export function saveProjects(projects: CreativeProject[]): void {
+  pendingProjects = projects
+  if (projectsTimer) return
+  projectsTimer = window.setTimeout(() => {
+    projectsTimer = undefined
+    const payload = pendingProjects
+    pendingProjects = null
+    if (payload) void flushProjects(payload)
+  }, 700)
+}
+
+export async function flushProjects(projects: CreativeProject[]): Promise<void> {
+  if (projectsTimer) {
+    window.clearTimeout(projectsTimer)
+    projectsTimer = undefined
+  }
+  pendingProjects = null
+  try {
+    await set(PROJECTS_KEY, projects)
+  } catch (err) {
+    console.warn('[storage] project write failed', err)
+  }
 }

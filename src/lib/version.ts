@@ -6,7 +6,7 @@
  * driven by `UpdateNotice`.
  */
 
-export const APP_VERSION = '1.0.9'
+export const APP_VERSION = '1.1.0'
 
 export interface ReleaseNote {
   version: string
@@ -16,6 +16,18 @@ export interface ReleaseNote {
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: '1.1.0',
+    date: '2026-11-20',
+    items: [
+      '新增创作模式：长文写作工作台（抽屉里进入），适合论文、小说、连载',
+      '创作模式支持大纲编写：设定/主题、人物（姓名与描述）、章节大纲，随时修改、下一轮自动生效',
+      '多轮续写：每轮独立思考过程，可设每轮目标字数（600–3000）与思考强度',
+      '创作时可开启联网搜索，先查资料再落笔',
+      '一键导出全文为 TXT（保存到手机或分享）',
+      '作品与正文保存在本机，可同时维护多部作品',
+    ],
+  },
+  {
     version: '1.0.9',
     date: '2026-11-20',
     items: [
@@ -23,6 +35,7 @@ export const RELEASE_NOTES: ReleaseNote[] = [
       '输入框高度测量改用不可编辑的隐藏 div，避免任何可编辑节点干扰输入法',
       '设置页 API Key / 接口地址打字时不再触发界面重渲染',
       'Android 明确声明 adjustResize 键盘模式，避免窗口平移打断输入法组词',
+      '修复输入框无法在文字中间插入内容的问题',
     ],
   },
   {

@@ -48,9 +48,9 @@ Markdown / LaTeX / 代码高亮 / Mermaid 渲染。
 | --- | --- | --- | --- |
 | ![公式](docs/screenshots/09-math.png) | ![Mermaid](docs/screenshots/10-mermaid.png) | ![模型](docs/screenshots/06-model-picker.png) | ![会话](docs/screenshots/07-conversations.png) |
 
-| 浅色模式 |
-| --- |
-| ![浅色](docs/screenshots/08-chat-light.png) |
+| 浅色模式 | 创作模式（作品列表） | 创作模式（大纲） | 创作模式（多轮续写） |
+| --- | --- | --- | --- |
+| ![浅色](docs/screenshots/08-chat-light.png) | ![作品列表](docs/screenshots/15-creative-list.png) | ![大纲](docs/screenshots/16-creative-outline.png) | ![续写](docs/screenshots/17-creative-draft.png) |
 
 ---
 
@@ -73,6 +73,7 @@ Markdown / LaTeX / 代码高亮 / Mermaid 渲染。
 | 系统提示词 | 支持自定义，改动后**已有对话的下一轮自动重新注入**（flash 走 in-history 追加，v4-pro 走 leading-only） |
 | 生成参数 | 思考强度 关闭/低/高/极高（官方 effort），最大输出 token 可选（默认交给服务端） |
 | 模型切换 | `deepseek-flash`（快、支持识图）/ `deepseek-v4-pro`（推理更强） |
+| **创作模式** | 长文写作工作台：大纲（设定 / 人物 / 章节）+ 多轮续写（每轮独立思考、可设目标字数）+ 联网查资料 + 导出 TXT |
 | 会话管理 | 自动标题、重命名、置顶、删除、搜索、本地持久化 |
 | 外观 | 深色 / 浅色 / 跟随系统，三档正文字号 |
 | 演示模式 | 无需 API Key，本地内容库模拟完整流式事件，可完整体验全部 UI 与交互 |

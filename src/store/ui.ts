@@ -15,6 +15,7 @@ interface UiState {
   settingsOpen: boolean
   modelSheetOpen: boolean
   attachSheetOpen: boolean
+  creativeOpen: boolean
   imageViewer: { src: string; alt?: string } | null
 
   /* feedback */
@@ -30,6 +31,8 @@ interface UiState {
   closeSettings: () => void
   setModelSheet: (open: boolean) => void
   setAttachSheet: (open: boolean) => void
+  openCreative: () => void
+  closeCreative: () => void
   openImageViewer: (src: string, alt?: string) => void
   closeImageViewer: () => void
 
@@ -47,6 +50,7 @@ export const useUiStore = create<UiState>((set, get) => ({
   settingsOpen: false,
   modelSheetOpen: false,
   attachSheetOpen: false,
+  creativeOpen: false,
   imageViewer: null,
   toasts: [],
   resolvedTheme: 'light',
@@ -58,6 +62,8 @@ export const useUiStore = create<UiState>((set, get) => ({
   closeSettings: () => set({ settingsOpen: false }),
   setModelSheet: (open) => set({ modelSheetOpen: open }),
   setAttachSheet: (open) => set({ attachSheetOpen: open }),
+  openCreative: () => set({ creativeOpen: true, drawerOpen: false }),
+  closeCreative: () => set({ creativeOpen: false }),
   openImageViewer: (src, alt) => set({ imageViewer: { src, alt } }),
   closeImageViewer: () => set({ imageViewer: null }),
 

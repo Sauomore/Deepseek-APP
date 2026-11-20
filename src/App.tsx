@@ -16,6 +16,7 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 
 import { ChatScreen } from '@/components/ChatScreen'
 import { ConversationDrawer } from '@/components/ConversationDrawer'
+import { CreativeMode } from '@/components/CreativeMode'
 import { ImageViewer } from '@/components/ImageViewer'
 import { ModelSheet } from '@/components/ModelSheet'
 import { Onboarding } from '@/components/Onboarding'
@@ -129,6 +130,10 @@ export default function App() {
         ui.closeImageViewer()
         return
       }
+      if (ui.creativeOpen) {
+        ui.closeCreative()
+        return
+      }
       if (ui.settingsOpen) {
         ui.closeSettings()
         return
@@ -179,6 +184,7 @@ export default function App() {
       </div>
 
       <ConversationDrawer />
+      <CreativeMode />
       <SettingsPage />
       <ModelSheet />
       <ImageViewer />
