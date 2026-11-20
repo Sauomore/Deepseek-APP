@@ -195,7 +195,7 @@ export function Composer({ conversation, generating, onStop }: ComposerProps) {
   // move the caret to the end, so typing in the middle of a sentence was
   // impossible. The mirror is off-screen, so measuring it is free of side
   // effects; the real element only changes height when a line is added/removed.
-  const mirrorRef = useRef<HTMLTextAreaElement | null>(null)
+  const mirrorRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(
     () => () => {
@@ -220,11 +220,12 @@ export function Composer({ conversation, generating, onStop }: ComposerProps) {
 
     let mirror = mirrorRef.current
     if (!mirror) {
-      mirror = document.createElement('textarea')
+      // A plain <div>, not another <textarea>: keeping a second *editable*
+      // element around (even off-screen) is pointless noise for the IME.
+      mirror = document.createElement('div')
       mirror.setAttribute('aria-hidden', 'true')
-      mirror.tabIndex = -1
       mirror.style.cssText =
-        'position:absolute;top:-10000px;left:-10000px;visibility:hidden;pointer-events:none;box-sizing:border-box;overflow:hidden;resize:none;border:0;margin:0;'
+        'position:absolute;top:-10000px;left:-10000px;visibility:hidden;pointer-events:none;box-sizing:border-box;overflow:hidden;margin:0;border:0;'
       document.body.appendChild(mirror)
       mirrorRef.current = mirror
     }
@@ -239,14 +240,11 @@ export function Composer({ conversation, generating, onStop }: ComposerProps) {
     mirror.style.paddingLeft = style.paddingLeft
     mirror.style.paddingRight = style.paddingRight
     mirror.style.whiteSpace = 'pre-wrap'
-    mirror.style.overflowWrap = style.overflowWrap
+    mirror.style.overflowWrap = style.overflowWrap || 'anywhere'
     mirror.style.wordBreak = style.wordBreak
-    // A textarea's default height comes from `rows` (2), which would be the
-    // floor for scrollHeight; collapse it so we measure pure content height.
-    mirror.rows = 1
-    mirror.style.height = '0px'
-    mirror.value = element.value
-    const contentHeight = mirror.scrollHeight
+    // Trailing zero-width space keeps a final newline measurable.
+    mirror.textContent = `${element.value}\u200b`
+    const contentHeight = Math.ceil(mirror.getBoundingClientRect().height)
 
     const target = Math.min(Math.max(contentHeight, minHeight), maxHeight)
     const current = Number.parseFloat(element.style.height || '0')

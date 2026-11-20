@@ -6,7 +6,7 @@
  * driven by `UpdateNotice`.
  */
 
-export const APP_VERSION = '1.0.8'
+export const APP_VERSION = '1.0.9'
 
 export interface ReleaseNote {
   version: string
@@ -15,6 +15,16 @@ export interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: ReleaseNote[] = [
+  {
+    version: '1.0.9',
+    date: '2026-11-20',
+    items: [
+      '新增「输入诊断」页面（设置 → 关于 → 输入诊断），可记录打字时的真实事件序列',
+      '输入框高度测量改用不可编辑的隐藏 div，避免任何可编辑节点干扰输入法',
+      '设置页 API Key / 接口地址打字时不再触发界面重渲染',
+      'Android 明确声明 adjustResize 键盘模式，避免窗口平移打断输入法组词',
+    ],
+  },
   {
     version: '1.0.8',
     date: '2026-11-20',

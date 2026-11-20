@@ -61,6 +61,18 @@ application-label: Deepseek APP
 
 ### 2.1 真机反馈修复
 
+#### 1.0.9 —— 输入诊断 + 输入链路进一步隔离
+
+1.0.8 发布后用户反馈"中间插入"问题仍在，而 Chrome 端用 `Input.imeSetComposition` 模拟中文组词完全正常
+（composer：`abcdef` → 中间组词 → `abc中def`，caret 正确；设置 Key 同样正常）。说明问题在 Android WebView 原生层，
+因此 1.0.9 先加可观测手段再改：
+
+- 新增「设置 → 关于 → 输入诊断」：一个真实输入框 + 实时事件日志（keydown / beforeinput / input /
+  compositionstart/update/end / select），每条记录值长度与光标位置，可截图回传。
+- 输入框高度测量从隐藏 `<textarea>` 改为隐藏 `<div>`：页面上不再存在第二个可编辑节点。
+- 设置页 API Key / 接口地址移除逐键 `setState`，打字期间不触发任何 React 重渲染。
+- AndroidManifest 显式声明 `android:windowSoftInputMode="adjustResize"`（之前未声明，系统可能选 adjustPan）。
+
 #### 1.0.8 —— 所有输入框都无法在文字中间插入内容
 
 **现象**：任何输入框（聊天输入框、搜索、重命名、API Key、接口地址、系统提示词）在文字中间点光标后再打字，字符会被吞掉或光标立刻跳到末尾，只能追加输入。

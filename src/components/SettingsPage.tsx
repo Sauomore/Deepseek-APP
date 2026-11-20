@@ -29,6 +29,7 @@ import { useChatStore } from '@/store/chat'
 import { useSettingsStore } from '@/store/settings'
 import { toast, useUiStore } from '@/store/ui'
 import { APP_VERSION, RELEASE_NOTES } from '@/lib/version'
+import { InputDiagnostics } from '@/components/InputDiagnostics'
 import { MODEL_META } from '@/types/api'
 import {
   MAX_OUTPUT_OPTIONS,
@@ -80,7 +81,7 @@ export function SettingsPage() {
   const [baseUrlDraft, setBaseUrlDraft] = useState(settings.baseUrl)
   const [testing, setTesting] = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
-  const [panel, setPanel] = useState<null | 'prompt' | 'tokens' | 'changelog'>(null)
+  const [panel, setPanel] = useState<null | 'prompt' | 'tokens' | 'changelog' | 'diag'>(null)
   const [promptDraft, setPromptDraft] = useState(settings.systemPrompt)
   const keyInputRef = useRef<HTMLInputElement>(null)
   const baseUrlInputRef = useRef<HTMLInputElement>(null)
@@ -192,7 +193,6 @@ export function SettingsPage() {
                      on Android WebView that moves the caret to the end, which
                      made it impossible to edit a key in the middle. */
                   defaultValue=""
-                  onInput={(event) => setKeyDraft((event.target as HTMLInputElement).value)}
                   onBlur={commitKey}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
@@ -248,7 +248,6 @@ export function SettingsPage() {
                 ref={baseUrlInputRef}
                 className="text-input"
                 defaultValue=""
-                onInput={(event) => setBaseUrlDraft((event.target as HTMLInputElement).value)}
                 onBlur={commitBaseUrl}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
@@ -541,6 +540,15 @@ export function SettingsPage() {
                 <ChevronRightIcon />
               </span>
             </button>
+            <button type="button" className="settings-row" onClick={() => setPanel('diag')}>
+              <span className="settings-row-main">
+                <span className="settings-row-title">输入诊断</span>
+                <span className="settings-row-desc">打字时光标乱跳时，用这里录下真实事件序列</span>
+              </span>
+              <span className="chev">
+                <ChevronRightIcon />
+              </span>
+            </button>
             <button
               type="button"
               className="settings-row"
@@ -591,7 +599,6 @@ export function SettingsPage() {
                 placeholder="例如：你是一位严谨的技术顾问，回答先给结论，再给依据；不确定时明确说明。"
                 rows={7}
                 onChange={(event) => setPromptDraft(event.target.value)}
-                onInput={(event) => setPromptDraft((event.target as HTMLTextAreaElement).value)}
               />
               <div className="field-hint">
                 留空表示使用内置默认提示词。系统提示词不会显示在对话记录里。
@@ -699,6 +706,8 @@ export function SettingsPage() {
           </div>
         </>
       ) : null}
+
+      <InputDiagnostics open={panel === 'diag'} onClose={() => setPanel(null)} />
 
       {confirmClear ? (
         <>
