@@ -189,15 +189,28 @@ export function Composer({ conversation, generating, onStop }: ComposerProps) {
   // One line at rest, +1 line per newline up to MAX_LINES, then internal
   // scrolling (with the "full screen" escape hatch rendered above the box).
   //
-  // Two WebView pitfalls handled here:
-  //  1. `scrollHeight` never reports less than the element's current height, so
-  //     the box must be measured from `height:auto` — otherwise it can expand
-  //     but never shrink back to a single line.
-  //  2. Re-laying out a focused textarea makes Android WebView jump the caret to
-  //     the end, so the selection is restored after every resize.
-  useEffect(() => {
+  // The height is measured on a hidden **mirror** textarea, never on the live
+  // one: re-laying out the focused textarea (which `height:auto` measuring did
+  // on every keystroke) makes Android WebView commit the IME composition and
+  // move the caret to the end, so typing in the middle of a sentence was
+  // impossible. The mirror is off-screen, so measuring it is free of side
+  // effects; the real element only changes height when a line is added/removed.
+  const mirrorRef = useRef<HTMLTextAreaElement | null>(null)
+
+  useEffect(
+    () => () => {
+      mirrorRef.current?.remove()
+      mirrorRef.current = null
+    },
+    [],
+  )
+
+  const resizeTextarea = useCallback(() => {
     const element = textareaRef.current
     if (!element) return
+    // Never touch layout while the IME is composing (see above).
+    if (composingRef.current) return
+
     const style = getComputedStyle(element)
     const lineHeight = Number.parseFloat(style.lineHeight) || 24
     const padTop = Number.parseFloat(style.paddingTop) || 0
@@ -205,24 +218,48 @@ export function Composer({ conversation, generating, onStop }: ComposerProps) {
     const maxHeight = Math.round(lineHeight * MAX_LINES + padTop + padBottom)
     const minHeight = Math.round(lineHeight + padTop + padBottom)
 
-    const start = element.selectionStart
-    const end = element.selectionEnd
-    const valueLength = (element.value ?? '').length
-    const composing = composingRef.current
+    let mirror = mirrorRef.current
+    if (!mirror) {
+      mirror = document.createElement('textarea')
+      mirror.setAttribute('aria-hidden', 'true')
+      mirror.tabIndex = -1
+      mirror.style.cssText =
+        'position:absolute;top:-10000px;left:-10000px;visibility:hidden;pointer-events:none;box-sizing:border-box;overflow:hidden;resize:none;border:0;margin:0;'
+      document.body.appendChild(mirror)
+      mirrorRef.current = mirror
+    }
+    mirror.style.width = `${element.clientWidth}px`
+    mirror.style.fontFamily = style.fontFamily
+    mirror.style.fontSize = style.fontSize
+    mirror.style.fontWeight = style.fontWeight
+    mirror.style.letterSpacing = style.letterSpacing
+    mirror.style.lineHeight = style.lineHeight
+    mirror.style.paddingTop = style.paddingTop
+    mirror.style.paddingBottom = style.paddingBottom
+    mirror.style.paddingLeft = style.paddingLeft
+    mirror.style.paddingRight = style.paddingRight
+    mirror.style.whiteSpace = 'pre-wrap'
+    mirror.style.overflowWrap = style.overflowWrap
+    mirror.style.wordBreak = style.wordBreak
+    // A textarea's default height comes from `rows` (2), which would be the
+    // floor for scrollHeight; collapse it so we measure pure content height.
+    mirror.rows = 1
+    mirror.style.height = '0px'
+    mirror.value = element.value
+    const contentHeight = mirror.scrollHeight
 
-    // Measure the natural content height.
-    const previous = element.style.height
-    element.style.height = 'auto'
-    const contentHeight = element.scrollHeight
     const target = Math.min(Math.max(contentHeight, minHeight), maxHeight)
-    const changed = `${target}px` !== previous
-    element.style.height = `${target}px`
-
-    if (changed && !composing && document.activeElement === element) {
-      try {
-        element.setSelectionRange(start, end)
-      } catch {
-        /* ignore */
+    const current = Number.parseFloat(element.style.height || '0')
+    if (Math.abs(current - target) >= 1) {
+      const start = element.selectionStart
+      const end = element.selectionEnd
+      element.style.height = `${target}px`
+      if (document.activeElement === element) {
+        try {
+          element.setSelectionRange(start, end)
+        } catch {
+          /* ignore */
+        }
       }
     }
 
@@ -230,25 +267,34 @@ export function Composer({ conversation, generating, onStop }: ComposerProps) {
     // scrolls, and the newest text must stay at the bottom.
     const overflowing = contentHeight > maxHeight + 1
     setCanExpand(overflowing)
+    const caret = element.selectionStart
+    const valueLength = (element.value ?? '').length
     if (overflowing) {
-      if (start >= valueLength) {
+      if (caret >= valueLength) {
         element.scrollTop = element.scrollHeight
       } else {
         // Otherwise just make sure the caret line is on screen.
-        const caretLine = (element.value ?? '').slice(0, start).split('\n').length
+        const caretLine = (element.value ?? '').slice(0, caret).split('\n').length
         const firstVisible = Math.max(0, caretLine - MAX_LINES)
         element.scrollTop = Math.max(0, firstVisible * lineHeight)
       }
     } else {
       element.scrollTop = 0
     }
-  }, [text])
+  }, [])
+
+  useEffect(() => {
+    resizeTextarea()
+  }, [text, resizeTextarea])
 
   /**
    * Some Android keyboards only fire `compositionend` (or nothing at all) for
    * IME commits, leaving the React mirror stale: the send button stays grey.
    * Poll the live DOM value while the composer is mounted so the UI catches up
    * within a frame or two regardless of which events the keyboard emits.
+   *
+   * The same tick also re-runs the autosize: if a keyboard never sends
+   * `compositionend`, the resize would otherwise stay blocked forever.
    */
   const textRef = useRef(text)
   textRef.current = text
@@ -256,6 +302,7 @@ export function Composer({ conversation, generating, onStop }: ComposerProps) {
     const sync = () => {
       const value = textareaRef.current?.value ?? ''
       if (value !== textRef.current) setText(value)
+      resizeTextarea()
     }
     const timer = window.setInterval(sync, 220)
     document.addEventListener('visibilitychange', sync)
@@ -263,7 +310,7 @@ export function Composer({ conversation, generating, onStop }: ComposerProps) {
       window.clearInterval(timer)
       document.removeEventListener('visibilitychange', sync)
     }
-  }, [])
+  }, [resizeTextarea])
 
   useEffect(() => {
     return () => {

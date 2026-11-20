@@ -6,7 +6,7 @@
  * driven by `UpdateNotice`.
  */
 
-export const APP_VERSION = '1.0.7'
+export const APP_VERSION = '1.0.8'
 
 export interface ReleaseNote {
   version: string
@@ -15,6 +15,15 @@ export interface ReleaseNote {
 }
 
 export const RELEASE_NOTES: ReleaseNote[] = [
+  {
+    version: '1.0.8',
+    date: '2026-11-20',
+    items: [
+      '修复所有输入框无法在文字中间插入内容的问题（打字后光标被弹到末尾）',
+      '搜索、重命名、API Key、接口地址等输入框改为非受控，输入法组词期间不再被改写',
+      '输入框高度改用隐藏镜像测量：打字过程中不再重排输入区，光标位置保持稳定',
+    ],
+  },
   {
     version: '1.0.7',
     date: '2026-11-19',

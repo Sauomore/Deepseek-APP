@@ -2,7 +2,7 @@
  * Conversation drawer — history, search, rename / pin / delete, settings entry.
  */
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   CheckIcon,
   CloseIcon,
@@ -50,8 +50,14 @@ export function ConversationDrawer() {
   const [query, setQuery] = useState('')
   const [menuId, setMenuId] = useState<string | null>(null)
   const [renamingId, setRenamingId] = useState<string | null>(null)
-  const [renameValue, setRenameValue] = useState('')
   const [pendingDelete, setPendingDelete] = useState<Conversation | null>(null)
+  /**
+   * Both text fields stay **uncontrolled** (the DOM owns the text): a controlled
+   * input gets its value rewritten on every React render, which on Android
+   * WebView moves the caret to the end — that made mid-text editing impossible.
+   */
+  const searchRef = useRef<HTMLInputElement>(null)
+  const renameRef = useRef<HTMLInputElement>(null)
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase()
@@ -74,12 +80,12 @@ export function ConversationDrawer() {
 
   const startRename = (conversation: Conversation) => {
     setRenamingId(conversation.id)
-    setRenameValue(conversation.title)
     setMenuId(null)
   }
 
   const commitRename = () => {
-    if (renamingId) renameConversation(renamingId, renameValue)
+    const value = renameRef.current?.value ?? ''
+    if (renamingId) renameConversation(renamingId, value)
     setRenamingId(null)
   }
 
@@ -110,14 +116,23 @@ export function ConversationDrawer() {
         <div className="drawer-search">
           <SearchIcon size={16} />
           <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            ref={searchRef}
+            defaultValue=""
+            onInput={(event) => setQuery((event.target as HTMLInputElement).value)}
             placeholder="搜索对话"
             aria-label="搜索对话"
             inputMode="search"
           />
           {query ? (
-            <button type="button" className="icon-btn" onClick={() => setQuery('')} aria-label="清空搜索">
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => {
+                if (searchRef.current) searchRef.current.value = ''
+                setQuery('')
+              }}
+              aria-label="清空搜索"
+            >
               <CloseIcon size={14} />
             </button>
           ) : null}
@@ -155,6 +170,7 @@ export function ConversationDrawer() {
                       >
                         {isRenaming ? (
                           <input
+                            ref={renameRef}
                             className="conv-title"
                             style={{
                               background: 'var(--bg-elevated)',
@@ -162,9 +178,17 @@ export function ConversationDrawer() {
                               padding: '3px 6px',
                               width: '100%',
                             }}
-                            value={renameValue}
+                            defaultValue={conversation.title}
                             autoFocus
-                            onChange={(event) => setRenameValue(event.target.value)}
+                            onFocus={(event) => {
+                              const element = event.currentTarget
+                              const length = element.value.length
+                              try {
+                                element.setSelectionRange(length, length)
+                              } catch {
+                                /* ignore */
+                              }
+                            }}
                             onBlur={commitRename}
                             onKeyDown={(event) => {
                               if (event.key === 'Enter') commitRename()

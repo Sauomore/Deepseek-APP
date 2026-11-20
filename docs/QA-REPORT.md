@@ -8,11 +8,11 @@
 
 | 文件 | 大小 | 说明 |
 | --- | --- | --- |
-| `release/Deepseek-APP-1.0.7-release.apk` | 5.99 MB | **推荐安装**，已签名，versionCode 8 / versionName 1.0.7 |
-| `release/Deepseek-APP-1.0.7-debug.apk` | 7.24 MB | 调试版，`chrome://inspect` 可远程调试 |
+| `release/Deepseek-APP-1.0.8-release.apk` | 5.99 MB | **推荐安装**，已签名，versionCode 9 / versionName 1.0.8 |
+| `release/Deepseek-APP-1.0.8-debug.apk` | 7.23 MB | 调试版，`chrome://inspect` 可远程调试 |
 | `release/keystore-do-not-lose.keystore` | 2.7 KB | release 签名密钥（口令见 `android/keystore.properties`），**升级安装必须用同一密钥** |
 
-> 修bug记录：1.0.1 粘贴 Key 后确认点不动 · 1.0.2 设置里模型/思考强度点不动 + 发送改为仅按钮 · 1.0.3 Key 在设置里不显示 + 输入法组词后按钮不出现 · 1.0.4 带图片发消息时文字丢失 + 搜索卡片折叠 · 1.0.5 发送按钮常驻 + 长按录音 · 1.0.6 粘贴失效 + 更新公告 + Mermaid 保存 + 推荐问题随机 · 1.0.7 输入框体验 + 系统提示词热更新 + 状态栏/字号修复。
+> 修bug记录：1.0.1 粘贴 Key 后确认点不动 · 1.0.2 设置里模型/思考强度点不动 + 发送改为仅按钮 · 1.0.3 Key 在设置里不显示 + 输入法组词后按钮不出现 · 1.0.4 带图片发消息时文字丢失 + 搜索卡片折叠 · 1.0.5 发送按钮常驻 + 长按录音 · 1.0.6 粘贴失效 + 更新公告 + Mermaid 保存 + 推荐问题随机 · 1.0.7 输入框体验 + 系统提示词热更新 + 状态栏/字号修复 · 1.0.8 所有输入框支持中间插入。
 > versionCode 每次 +1，可直接覆盖安装旧版本，无需先卸载。
 
 签名信息（`apksigner verify --print-certs`）：
@@ -26,7 +26,7 @@ SHA-256: 27a2dd524fa50457ecc7748ec48a9a56161b51f300389eb5c3006cb3033b9823
 APK 元信息（`aapt dump badging`）：
 
 ```
-package: com.deepseek.mobile  versionCode=8  versionName=1.0.7
+package: com.deepseek.mobile  versionCode=9  versionName=1.0.8
 sdkVersion=24  targetSdkVersion=36  compileSdk=36
 permissions: INTERNET, RECORD_AUDIO, MODIFY_AUDIO_SETTINGS, VIBRATE
 application-label: Deepseek APP
@@ -60,6 +60,35 @@ application-label: Deepseek APP
 5. **一次搜索 19 条来源全渲染** —— 改为默认展示 4 条 + 展开，并把被引用的来源自动排到前面。
 
 ### 2.1 真机反馈修复
+
+#### 1.0.8 —— 所有输入框都无法在文字中间插入内容
+
+**现象**：任何输入框（聊天输入框、搜索、重命名、API Key、接口地址、系统提示词）在文字中间点光标后再打字，字符会被吞掉或光标立刻跳到末尾，只能追加输入。
+
+**根因（两类）**
+
+1. **受控输入框被 React 重写**：`value={state}` + `onChange` 的输入框，每次 state 变化都会重渲染并回写 `input.value`。Android WebView 在回写时会把光标复位到末尾，输入法组词阶段尤其明显，所以中间插入基本不可用。
+2. **聊天输入框每次按键都重排自身**：旧的自动增高为了测出内容高度，会把 `height` 先置为 `auto` 再读 `scrollHeight`。对被聚焦的 textarea 做重排会让 Android WebView 提交组词并把光标弹到末尾。
+
+**修复**
+
+- 5 个受控输入框全部改为**非受控**（`defaultValue` + ref，提交时读 DOM）：聊天搜索、会话重命名、引导页 Key、设置页 Key、接口地址；系统提示词输入框顺带修复了"二次打开显示旧草稿"的问题。
+- 聊天输入框的自动增高改为**隐藏镜像测量**：用一个离屏 textarea 复刻字体/行高/内边距/宽度，在它上面量高度，真实输入框只在行数变化时改一次高度，并在改完后恢复选区。
+- IME 组词期间（`compositionstart` → `compositionend`）完全跳过高度调整；另外每 220ms 的兜底轮询里也会补一次测量，避免某些键盘不发 `compositionend` 导致高度卡住。
+
+**验证（逐项实测）**
+
+| 输入框 | 操作 | 结果 |
+| --- | --- | --- |
+| 聊天输入框 | `abcdefghij` 在第 6 位插入 `XY` | `abcdeXYfghij`，caret=7 ✅ |
+| API Key（设置） | 中间插入 `ZZ` | `sk-test-key-12ZZ34...`，caret=16 ✅ |
+| 接口地址 | 中间插入 `YY` | `https://api.YYdeepseek.com`，caret=14 ✅ |
+| 系统提示词 | 中间插入 `YY` | `你是一位YY严谨的技术顾问。`，caret=6 ✅ |
+| 引导页 Key | 第 4 位插入 `MID` 并提交 | `sk-MIDonboarding-...`，保存进设置 ✅ |
+| 会话重命名 | 第 3 位插入 `XX` 回车 | 标题变为 `新的XX对话` ✅ |
+| 抽屉搜索 | 输入「苹果」→ 清空 | 2 条→1 条→2 条，清空按钮复位 ✅ |
+
+输入框高度回归：40 / 64 / 88px（1/2/3 行），4 行锁定 88px 内部滚动并出现全屏按钮 ✅
 
 #### 1.0.7 —— 输入体验 / 系统提示词热更新 / 状态栏与字号
 

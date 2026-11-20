@@ -102,7 +102,7 @@ npm run apk:release  # 已签名的 release 包
 ```
 android/app/build/outputs/apk/debug/app-debug.apk
 android/app/build/outputs/apk/release/app-release.apk
-release/Deepseek-APP-1.0.7-release.apk   ← 直接安装这个
+release/Deepseek-APP-1.0.8-release.apk   ← 直接安装这个
 ```
 
 完整步骤（含 release 签名）见 [docs/BUILD.md](docs/BUILD.md)。

@@ -97,12 +97,19 @@ export function SettingsPage() {
     const latest = useSettingsStore.getState().settings
     setKeyDraft(latest.apiKey)
     setBaseUrlDraft(latest.baseUrl)
+    // The fields are uncontrolled, so seed their DOM values explicitly.
+    if (keyInputRef.current) keyInputRef.current.value = latest.apiKey
+    if (baseUrlInputRef.current) baseUrlInputRef.current.value = latest.baseUrl
   }, [open])
 
   /** Re-sync the prompt draft whenever the editor panel opens. */
   useEffect(() => {
     if (panel !== 'prompt') return
-    setPromptDraft(useSettingsStore.getState().settings.systemPrompt)
+    const latest = useSettingsStore.getState().settings.systemPrompt
+    setPromptDraft(latest)
+    // The textarea is uncontrolled, so seed its DOM value too (defaultValue only
+    // applies at mount, and the sheet is reused between opens).
+    if (promptInputRef.current) promptInputRef.current.value = latest
   }, [panel])
 
   if (!open) return null
@@ -181,8 +188,10 @@ export function SettingsPage() {
                   ref={keyInputRef}
                   className="text-input"
                   type={showKey ? 'text' : 'password'}
-                  value={keyDraft}
-                  onChange={(event) => setKeyDraft(event.target.value)}
+                  /* Uncontrolled: a bound value is rewritten on every render and
+                     on Android WebView that moves the caret to the end, which
+                     made it impossible to edit a key in the middle. */
+                  defaultValue=""
                   onInput={(event) => setKeyDraft((event.target as HTMLInputElement).value)}
                   onBlur={commitKey}
                   onKeyDown={(event) => {
@@ -238,8 +247,7 @@ export function SettingsPage() {
                 id="base-url"
                 ref={baseUrlInputRef}
                 className="text-input"
-                value={baseUrlDraft}
-                onChange={(event) => setBaseUrlDraft(event.target.value)}
+                defaultValue=""
                 onInput={(event) => setBaseUrlDraft((event.target as HTMLInputElement).value)}
                 onBlur={commitBaseUrl}
                 onKeyDown={(event) => {

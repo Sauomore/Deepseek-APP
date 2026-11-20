@@ -105,9 +105,13 @@ export function Onboarding() {
               ref={inputRef}
               className="text-input"
               type={showKey ? 'text' : 'password'}
-              value={apiKey}
-              onChange={(event) => setApiKey(event.target.value)}
-              onInput={(event) => setApiKey((event.target as HTMLInputElement).value)}
+              /* Uncontrolled: a controlled value would be rewritten on every
+                 render and push the caret to the end on Android WebView. */
+              defaultValue=""
+              onInput={(event) => {
+                const value = (event.target as HTMLInputElement).value
+                if (value !== apiKey) setApiKey(value)
+              }}
               onBlur={() => {
                 // Re-sync from the DOM in case an event was swallowed.
                 const value = inputRef.current?.value ?? ''
