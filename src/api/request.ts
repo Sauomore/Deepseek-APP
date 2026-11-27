@@ -29,7 +29,7 @@ import { MAX_OUTPUT_TOKEN_LIMIT } from '@/types/settings'
 import { sanitizeBlocksForHistory } from './accumulator'
 
 /** ~1M context, so this only bounds pathological payloads. */
-const MAX_TOKENS = 32768
+const MAX_TOKENS = 2097152
 
 /** Older than this many user turns, image payloads are dropped from history. */
 const IMAGE_HISTORY_TURNS = 6
@@ -87,6 +87,12 @@ export interface BuildRequestOptions {
   messages: ChatMessage[]
   /** True when this is the first assistant turn (enables server-side title generation). */
   isFirstTurn: boolean
+  /**
+   * 长文档库检索命中的原文片段（见 @/lib/longdoc/db）。
+   * 非空时会追加到最后一条 user 消息里，让模型优先依据这些原文回答，
+   * 从而避免把上百 MB 的原文整体塞进上下文。
+   */
+  longdocHits?: { tag: string; body: string }[]
 }
 
 export function buildMessagesRequest(options: BuildRequestOptions): MessagesRequest {
@@ -111,6 +117,30 @@ export function buildMessagesRequest(options: BuildRequestOptions): MessagesRequ
       const blocks = sanitizeBlocksForHistory(message.blocks)
       if (!blocks.length) continue
       params.push({ role: 'assistant', content: blocks })
+    }
+  }
+
+  // 长文档检索结果：拼到最后一条 user 消息，而不是新增一条消息 ——
+  // Messages 协议要求 user/assistant 交替，多推一条会让某些实现直接报错。
+  if (options.longdocHits && options.longdocHits.length > 0) {
+    const last = params[params.length - 1]
+    if (last && last.role === 'user') {
+      const joined = options.longdocHits
+        .map((hit, i) => '〔' + (i + 1) + '｜' + hit.tag + '〕\n' + hit.body)
+        .join('\n\n')
+      const block =
+        '\n\n<retrieved_context>\n' +
+        '以下是从我的长文档库中检索到的 ' + options.longdocHits.length +
+        ' 段相关原文。回答时优先依据这些原文；原文里没有的信息，明确说不知道，不要推测。\n\n' +
+        joined +
+        '\n</retrieved_context>'
+      const content = Array.isArray(last.content)
+        ? last.content
+        : [{ type: 'text' as const, text: String(last.content) }]
+      params[params.length - 1] = {
+        role: 'user',
+        content: [...content, { type: 'text' as const, text: block }],
+      } as ChatMessageParam
     }
   }
 

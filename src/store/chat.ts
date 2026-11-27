@@ -15,6 +15,7 @@ import { BlockAccumulator } from '@/api/accumulator'
 import { isAbortError, streamMessages, DeepSeekApiError } from '@/api/client'
 import { mockTitleFor, runMockStream } from '@/api/mock/engine'
 import { buildMessagesRequest, effectiveSystemPrompt, lastUserText, promptHash } from '@/api/request'
+import { hasLongdoc, search as searchLongdoc } from '@/lib/longdoc/db'
 import { prefixedId } from '@/lib/id'
 import { flushNow, loadConversations, saveConversations } from '@/lib/storage'
 import { useSettingsStore } from '@/store/settings'
@@ -143,11 +144,33 @@ async function executeTurn(
       (message) => message.role === 'assistant' && message.id !== assistantId && (message.blocks?.length ?? 0) > 0,
     ).length === 0
 
+  // 长文档检索：仅当本地库有内容时才触发，避免无谓加载 wasm。
+  // 检索失败不影响正常对话 —— 降级为不带上下文。
+  let longdocHits: { tag: string; body: string }[] | undefined
+  try {
+    if (await hasLongdoc()) {
+      const userMsgs = conversation.messages.filter((m) => m.role === 'user')
+      const lastUser = userMsgs[userMsgs.length - 1]
+      const prevUser = userMsgs[userMsgs.length - 2]
+      const query = lastUser?.text?.trim()
+      // 上一轮问句作为检索上下文：追问「原文为什么没有」这类元问题时，
+      // 当前问句过滤停用词后几乎没有有效词，需要靠上下文补回意图。
+      const prevQuery = prevUser?.text?.trim()
+      if (query) {
+        const hits = await searchLongdoc(query, 3, prevQuery)
+        if (hits.length) longdocHits = hits.map((h) => ({ tag: h.tag, body: h.body }))
+      }
+    }
+  } catch {
+    longdocHits = undefined
+  }
+
   const body = buildMessagesRequest({
     conversation,
     settings,
     messages: conversation.messages,
     isFirstTurn,
+    ...(longdocHits ? { longdocHits } : {}),
   })
 
   const attachments = lastUserAttachments(conversation)
@@ -178,10 +201,12 @@ async function executeTurn(
       ...(snapshot.usage ? { usage: snapshot.usage } : {}),
     })
   }
+  // 40ms(25fps) 太快：每次 flush 都会重建整条消息的 HTML 并触发一次布局，
+  // 长回复时表现为「字刷得飞快但界面一顿一顿」。100ms(10fps) 反而更顺。
   const schedulePublish = () => {
     if (scheduled) return
     scheduled = true
-    publishTimer = window.setTimeout(flushBlocks, 40)
+    publishTimer = window.setTimeout(flushBlocks, 100)
   }
 
   set({ generating: true })

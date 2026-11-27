@@ -129,7 +129,11 @@ md.renderer.rules.fence = (tokens, idx) => {
 
   let highlighted: string
   let displayLanguage = language
-  if (language && hljs.getLanguage(language)) {
+  if (lightMode) {
+    // 流式期间不跑 hljs：未闭合的代码块语法树不完整，高亮结果也会被下一帧推翻
+    highlighted = escapeHtml(code)
+    if (!displayLanguage) displayLanguage = 'text'
+  } else if (language && hljs.getLanguage(language)) {
     try {
       highlighted = hljs.highlight(code, { language, ignoreIllegals: true }).value
     } catch {
@@ -179,7 +183,16 @@ const CACHE_LIMIT = 80
 export interface RenderOptions {
   /** Turn `citationToken(n)` into custom HTML (a citation badge). */
   citationHtml?: (index: number) => string
+  /**
+   * 流式期间的轻量模式：跳过公式提取与语法高亮。
+   * 这两步都要对整段文本做二次正则扫描，是流式卡顿的主要来源；
+   * 流结束后（caret=false）会用完整模式再渲染一次。
+   */
+  light?: boolean
 }
+
+/** 供 fence 规则读取当前是否处于轻量模式（同步渲染，无并发问题） */
+let lightMode = false
 
 export function renderMarkdown(source: string, options?: RenderOptions): string {
   if (!source) return ''
@@ -190,34 +203,44 @@ export function renderMarkdown(source: string, options?: RenderOptions): string 
     if (cached !== undefined) return cached
   }
 
-  mathStore = []
-  const withMath = extractMath(source)
+  const light = !!options?.light
+  const prevLight = lightMode
+  lightMode = light
+  try {
+    mathStore = []
+    // 轻量模式跳过公式抽取：未闭合的 $$...$$ 在这一帧抽出来，下一帧就被推翻
+    const withMath = light ? source : extractMath(source)
 
-  let html = md.render(withMath)
+    let html = md.render(withMath)
 
-  // Defence in depth: strip anything script-ish that survived.
-  html = DOMPurify.sanitize(html, {
-    ADD_ATTR: ['data-src', 'data-cite-url', 'data-mermaid-save', 'target', 'rel'],
-    FORBID_TAGS: ['style', 'iframe', 'form', 'input', 'object', 'embed'],
-    FORBID_ATTR: ['style', 'onerror', 'onload', 'onclick'],
-  })
+    // Defence in depth: strip anything script-ish that survived.
+    html = DOMPurify.sanitize(html, {
+      ADD_ATTR: ['data-src', 'data-cite-url', 'data-mermaid-save', 'target', 'rel'],
+      FORBID_TAGS: ['style', 'iframe', 'form', 'input', 'object', 'embed'],
+      FORBID_ATTR: ['style', 'onerror', 'onload', 'onclick'],
+    })
 
-  // Restore trusted KaTeX output after sanitisation.
-  html = html.replace(mathPattern, (_whole, index: string) => mathStore[Number(index)] ?? '')
-
-  if (options?.citationHtml) {
-    const citationHtml = options.citationHtml
-    html = html.replace(CITE_TOKEN, (_whole, index: string) => citationHtml(Number(index)))
-  }
-
-  if (cacheKey !== null) {
-    if (cache.size >= CACHE_LIMIT) {
-      const firstKey = cache.keys().next().value
-      if (firstKey !== undefined) cache.delete(firstKey)
+    // Restore trusted KaTeX output after sanitisation.
+    if (!light) {
+      html = html.replace(mathPattern, (_whole, index: string) => mathStore[Number(index)] ?? '')
     }
-    cache.set(cacheKey, html)
+
+    if (options?.citationHtml) {
+      const citationHtml = options.citationHtml
+      html = html.replace(CITE_TOKEN, (_whole, index: string) => citationHtml(Number(index)))
+    }
+
+    if (cacheKey !== null) {
+      if (cache.size >= CACHE_LIMIT) {
+        const firstKey = cache.keys().next().value
+        if (firstKey !== undefined) cache.delete(firstKey)
+      }
+      cache.set(cacheKey, html)
+    }
+    return html
+  } finally {
+    lightMode = prevLight
   }
-  return html
 }
 
 /** Plain-text preview used by the conversation drawer. */

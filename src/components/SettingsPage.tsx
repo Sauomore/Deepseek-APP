@@ -23,6 +23,7 @@ import {
   BookOpenIcon,
 } from '@/components/icons'
 import { listModels } from '@/api/client'
+import { LongdocPanel } from '@/components/LongdocPanel'
 import { openExternal } from '@/lib/platform'
 import { tapFeedback } from '@/lib/haptics'
 import { useChatStore } from '@/store/chat'
@@ -903,6 +904,8 @@ export function SettingsPage() {
           </div>
         </>
       ) : null}
+
+      <LongdocPanel />
 
       <InputDiagnostics open={panel === 'diag'} onClose={() => setPanel(null)} />
 

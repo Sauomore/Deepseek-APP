@@ -6,7 +6,7 @@
  * wires behaviour on top: copy buttons, link interception and Mermaid rendering.
  */
 
-import { useEffect, useMemo, useRef } from 'react'
+import { memo, useEffect, useMemo, useRef } from 'react'
 import { renderMarkdown } from '@/lib/markdown'
 import { copyText, openExternal, safeDecode } from '@/lib/platform'
 import { toast, useUiStore } from '@/store/ui'
@@ -103,13 +103,28 @@ function hydrateMermaid(root: HTMLElement | null, theme: 'default' | 'dark'): vo
 
 /* ------------------------------------------------------------------ */
 
-export function MarkdownView({ text, caret = false, className, citationHtml }: MarkdownViewProps) {
+/**
+ * memo 包裹是流式流畅的关键：
+ * AgentMessage 每 100ms 重建一次 runs，若不 memo，一条 20 段的回复
+ * 会每帧把 20 段全部重新解析 Markdown。memo 后只有 text 真正变化的那段重算。
+ */
+export const MarkdownView = memo(function MarkdownView({
+  text,
+  caret = false,
+  className,
+  citationHtml,
+}: MarkdownViewProps) {
   const theme = useUiStore((state) => state.resolvedTheme)
   const mermaidTheme = theme === 'dark' ? 'dark' : 'default'
   const containerRef = useRef<HTMLDivElement>(null)
 
   const html = useMemo(() => {
-    let output = renderMarkdown(text, citationHtml ? { citationHtml } : undefined)
+    // 流式期间跳过 KaTeX 与语法高亮：两者都要对整段文本做二次解析，
+    // 每 100ms 重跑一次是主要卡顿来源。流结束后（caret=false）再做完整渲染。
+    let output = renderMarkdown(
+      text,
+      citationHtml || caret ? { ...(citationHtml ? { citationHtml } : {}), light: caret } : undefined,
+    )
     if (caret) {
       // Place the caret inside the final block so it hugs the last character.
       const withCaret = output.replace(
@@ -121,9 +136,13 @@ export function MarkdownView({ text, caret = false, className, citationHtml }: M
     return output
   }, [text, caret, citationHtml])
 
+  // 流式期间（caret=true）跳过图表水合。
+  // 否则每 100ms 一次的 html 变更都会触发一次 DOM 扫描 + mermaid 渲染，
+  // 而未闭合的代码块本就画不出图，白烧一次布局。
   useEffect(() => {
+    if (caret) return
     hydrateMermaid(containerRef.current, mermaidTheme)
-  }, [html, mermaidTheme])
+  }, [html, mermaidTheme, caret])
 
   const onClick = (event: React.MouseEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement
@@ -205,4 +224,13 @@ export function MarkdownView({ text, caret = false, className, citationHtml }: M
       dangerouslySetInnerHTML={{ __html: html }}
     />
   )
-}
+},
+// 只比 text / caret / className / 主题。
+// citationHtml 每次渲染都是新函数（闭包捕获了新的 sources），若参与比较
+// 则 memo 永远失效；但引用角标的变化本身会通过 text 之外的渠道体现，
+// 且流式期间不产生新引用，忽略它在观感上没有可感知差异。
+(prev, next) =>
+  prev.text === next.text &&
+  prev.caret === next.caret &&
+  prev.className === next.className,
+)

@@ -64,7 +64,7 @@ export const DEFAULT_SETTINGS: Settings = {
 }
 
 /** `max_output_tokens` reported by /models for both current models. */
-export const MAX_OUTPUT_TOKEN_LIMIT = 393216
+export const MAX_OUTPUT_TOKEN_LIMIT = 2097152
 
 export const THINKING_LEVELS: Array<{ value: ThinkingLevel; label: string; desc: string }> = [
   { value: 'off', label: '关闭', desc: '直接回答，不输出思考过程（最快、最省）' },
